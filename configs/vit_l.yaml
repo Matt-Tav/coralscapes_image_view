@@ -1,0 +1,122 @@
+# DINOv3 ViT-L + LoRA training preset (larger backbone, higher memory).
+
+data:
+  images_root: ./data/leftImg8bit
+  labels_root: ./data/gtFine
+  train_split: train
+  val_split: val
+  image_suffix: "_leftImg8bit.png"
+  label_suffix: "_gtFine.png"
+  num_classes: 40
+  ignore_index: 0
+augment:
+  train_sizes:
+    - [736,1344]
+    - [736,1376]
+    - [768,1280]
+    - [768,1312]
+    - [768,1344]
+    - [768,1376]
+    - [800,1248]
+    - [800,1280]
+    - [800,1312]
+    - [832,1184]
+    - [832,1216]
+    - [832,1248]
+    - [832,1280]
+    - [864,1152]
+    - [864,1184]
+    - [864,1216]
+    - [896,1088]
+    - [896,1120]
+    - [896,1152]
+    - [896,1184]
+    - [928,1056]
+    - [928,1088]
+    - [928,1120]
+    - [928,1152]
+    - [960,1024]
+    - [960,1056]
+    - [960,1088]
+    - [992,992]
+    - [992,1024]
+    - [992,1056]
+    - [1024,960]
+    - [1024,992]
+    - [1024,1024]
+    - [1056,928]
+    - [1056,960]
+    - [1056,992]
+    - [1088,896]
+    - [1088,928]
+    - [1088,960]
+    - [1120,896]
+    - [1120,928]
+    - [1152,864]
+    - [1152,896]
+    - [1152,928]
+    - [1184,832]
+    - [1184,864]
+    - [1184,896]
+    - [1216,832]
+    - [1216,864]
+    - [1248,800]
+    - [1248,832]
+    - [1280,768]
+    - [1280,800]
+    - [1280,832]
+    - [1312,768]
+    - [1312,800]
+    - [1344,736]
+    - [1344,768]
+    - [1376,736]
+    - [1376,768]
+  val_size: [768, 1376]
+  max_rotation_deg: 20
+  color_jitter_brightness: 0.2
+  color_jitter_contrast: 0.2
+  color_jitter_saturation: 0.2
+  color_jitter_hue: 0.05
+  rrc_scale: [0.2, 1.0]
+  rrc_ratio: [0.5, 2.0]
+
+model:
+  encoder_id: facebook/dinov3-vitl16-pretrain-lvd1689m
+  freeze_encoder: true
+  attn_implementation: sdpa
+  fusion_hidden_size: 256
+  neck_hidden_sizes: [96, 192, 384, 768]
+  reassemble_factors: [4, 2, 1, 0.5]
+  patch_size_check: 16
+  lora:
+    enabled: true
+    r: 16
+    alpha: 32
+    dropout: 0.05
+    target_modules: all-linear
+
+train:
+  output_dir: ./runs/vit_l
+  epochs: 150
+  batch_size: 8
+  val_batch_size: 8
+  lr: 0.00005
+  warmup_steps: 1000
+  weight_decay: 0.01
+  num_workers: 16
+  amp: true
+  seed: 42
+  resume_from: null
+  resume_optimizer: false
+  log_training_batch: true
+  training_batch_images: 4
+  log_loss_plot: true
+  wandb_enabled: true
+  wandb_project: coralscapes-segmentation-dinov3
+  wandb_run_name: null
+  wandb_mode: online
+  wandb_log_system_metrics: true
+  wandb_log_images: true
+  wandb_log_images_every: 1
+  wandb_log_images_count: 1
+  wandb_overlay_alpha: 0.5

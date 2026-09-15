@@ -1,0 +1,27 @@
+[workspace]
+name = "coralscapes-viewer"
+version = "0.1.0"
+description = "Run Coralscapes DINOv3+DPT segmentation models on images and generate HTML viewers."
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[tasks]
+predict = "python scripts/predict_image.py"
+
+[dependencies]
+python = "3.11.*"
+pyyaml = ">=6.0"
+pillow = ">=10.0"
+tqdm = ">=4.66"
+numpy = ">=1.26"
+
+[pypi-dependencies]
+torch = "==2.8.0"
+torchvision = "==0.23.0"
+transformers = ">=4.52.0"
+safetensors = ">=0.4.0"
+peft = ">=0.12.0"
+huggingface_hub = ">=0.20"
+
+[environments]
+default = { solve-group = "default" }

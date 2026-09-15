@@ -1,0 +1,122 @@
+# DINOv3 ViT-S + LoRA training preset (smaller crops, lower memory).
+
+data:
+  images_root: ./data/leftImg8bit
+  labels_root: ./data/gtFine
+  train_split: train
+  val_split: val
+  image_suffix: "_leftImg8bit.png"
+  label_suffix: "_gtFine.png"
+  num_classes: 40
+  ignore_index: 0
+augment:
+  train_sizes:
+    - [368,672]
+    - [368,688]
+    - [384,640]
+    - [384,656]
+    - [384,672]
+    - [384,688]
+    - [400,624]
+    - [400,640]
+    - [400,656]
+    - [416,592]
+    - [416,608]
+    - [416,624]
+    - [416,640]
+    - [432,576]
+    - [432,592]
+    - [432,608]
+    - [448,544]
+    - [448,560]
+    - [448,576]
+    - [448,592]
+    - [464,528]
+    - [464,544]
+    - [464,560]
+    - [464,576]
+    - [480,512]
+    - [480,528]
+    - [480,544]
+    - [496,496]
+    - [496,512]
+    - [496,528]
+    - [512,480]
+    - [512,496]
+    - [512,512]
+    - [528,464]
+    - [528,480]
+    - [528,496]
+    - [544,448]
+    - [544,464]
+    - [544,480]
+    - [560,448]
+    - [560,464]
+    - [576,432]
+    - [576,448]
+    - [576,464]
+    - [592,416]
+    - [592,432]
+    - [592,448]
+    - [608,416]
+    - [608,432]
+    - [624,400]
+    - [624,416]
+    - [640,384]
+    - [640,400]
+    - [640,416]
+    - [656,384]
+    - [656,400]
+    - [672,368]
+    - [672,384]
+    - [688,368]
+    - [688,384]
+  val_size: [384, 688]
+  max_rotation_deg: 20
+  color_jitter_brightness: 0.2
+  color_jitter_contrast: 0.2
+  color_jitter_saturation: 0.2
+  color_jitter_hue: 0.05
+  rrc_scale: [0.2, 1.0]
+  rrc_ratio: [0.5, 2.0]
+
+model:
+  encoder_id: facebook/dinov3-vits16-pretrain-lvd1689m
+  freeze_encoder: true
+  attn_implementation: sdpa
+  fusion_hidden_size: 256
+  neck_hidden_sizes: [96, 192, 384, 768]
+  reassemble_factors: [4, 2, 1, 0.5]
+  patch_size_check: 16
+  lora:
+    enabled: true
+    r: 16
+    alpha: 32
+    dropout: 0.05
+    target_modules: all-linear
+
+train:
+  output_dir: ./runs/vit_s
+  epochs: 150
+  batch_size: 8
+  val_batch_size: 8
+  lr: 0.00005
+  warmup_steps: 1000
+  weight_decay: 0.01
+  num_workers: 16
+  amp: true
+  seed: 42
+  resume_from: null
+  resume_optimizer: false
+  log_training_batch: true
+  training_batch_images: 4
+  log_loss_plot: true
+  wandb_enabled: true
+  wandb_project: coralscapes-segmentation-dinov3
+  wandb_run_name: null
+  wandb_mode: online
+  wandb_log_system_metrics: true
+  wandb_log_images: true
+  wandb_log_images_every: 1
+  wandb_log_images_count: 1
+  wandb_overlay_alpha: 0.5
