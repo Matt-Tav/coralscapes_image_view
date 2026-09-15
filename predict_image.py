@@ -63,38 +63,38 @@ def _is_int_like(x: Any) -> bool:
         return False
 
 
-def _load_id_to_color(
-    colors_json: Path, classes_json: Path | None = None
+def _load_id_to_colour(
+    colours_json: Path, classes_json: Path | None = None
 ) -> dict[int, tuple[int, int, int]]:
-    colors = json.loads(colors_json.read_text())
+    colours = json.loads(colours_json.read_text())
     out: dict[int, tuple[int, int, int]] = {}
 
-    if isinstance(colors, list):
-        for idx, rgb in enumerate(colors):
+    if isinstance(colours, list):
+        for idx, rgb in enumerate(colours):
             if isinstance(rgb, (list, tuple)) and len(rgb) == 3:
                 out[int(idx)] = (int(rgb[0]), int(rgb[1]), int(rgb[2]))
         return out
 
-    if not isinstance(colors, dict):
-        raise TypeError(f"Unsupported colors.json format: {type(colors)!r}")
+    if not isinstance(colours, dict):
+        raise TypeError(f"Unsupported colours.json format: {type(colours)!r}")
 
-    numeric_keys = all(_is_int_like(k) for k in colors.keys())
+    numeric_keys = all(_is_int_like(k) for k in colours.keys())
 
     if numeric_keys:
-        for k, rgb in colors.items():
+        for k, rgb in colours.items():
             if isinstance(rgb, (list, tuple)) and len(rgb) == 3:
                 out[int(k)] = (int(rgb[0]), int(rgb[1]), int(rgb[2]))
         return out
 
     if classes_json is None or not classes_json.is_file():
         raise FileNotFoundError(
-            "colors.json uses class names, so classes.json is required to map names->ids."
+            "colours.json uses class names, so classes.json is required to map names->ids."
         )
     classes = json.loads(classes_json.read_text())
     for class_name, cid in classes.items():
-        if class_name not in colors:
+        if class_name not in colours:
             continue
-        rgb = colors[class_name]
+        rgb = colours[class_name]
         if isinstance(rgb, (list, tuple)) and len(rgb) == 3:
             out[int(cid)] = (int(rgb[0]), int(rgb[1]), int(rgb[2]))
     return out
@@ -124,15 +124,15 @@ def _load_id_to_name(classes_json: Path) -> dict[int, str]:
     raise TypeError(f"Unsupported classes.json format: {type(data)!r}")
 
 
-def _build_color_lut(id_to_color: dict[int, tuple[int, int, int]]) -> np.ndarray:
-    max_id = max(id_to_color.keys()) if id_to_color else 0
+def _build_colour_lut(id_to_colour: dict[int, tuple[int, int, int]]) -> np.ndarray:
+    max_id = max(id_to_colour.keys()) if id_to_colour else 0
     lut = np.zeros((max_id + 1, 3), dtype=np.uint8)
-    for cid, rgb in id_to_color.items():
+    for cid, rgb in id_to_colour.items():
         lut[int(cid)] = np.asarray(rgb, dtype=np.uint8)
     return lut
 
 
-def _colorize(mask_hw: np.ndarray, lut: np.ndarray) -> np.ndarray:
+def _colourize(mask_hw: np.ndarray, lut: np.ndarray) -> np.ndarray:
     clipped = np.clip(mask_hw, 0, lut.shape[0] - 1).astype(np.int64, copy=False)
     return lut[clipped]
 
@@ -172,7 +172,7 @@ def _load_font(size: int) -> ImageFont.ImageFont:
 
 def _make_legend_image(
     class_ids: Iterable[int],
-    id_to_color: dict[int, tuple[int, int, int]],
+    id_to_colour: dict[int, tuple[int, int, int]],
     id_to_name: dict[int, str],
     swatch: int = 36,
     row_h: int = 48,
@@ -194,8 +194,8 @@ def _make_legend_image(
 
     y = pad
     for cid, label in zip(ids, labels):
-        color = tuple(int(c) for c in id_to_color.get(cid, (128, 128, 128)))
-        draw.rectangle([pad, y, pad + swatch, y + swatch], fill=color, outline=(0, 0, 0))
+        colour = tuple(int(c) for c in id_to_colour.get(cid, (128, 128, 128)))
+        draw.rectangle([pad, y, pad + swatch, y + swatch], fill=colour, outline=(0, 0, 0))
         draw.text(
             (pad * 2 + swatch, y + (swatch - font_size) // 2),
             label,
@@ -358,7 +358,7 @@ _HTML_VIEWER_TEMPLATE = """<!DOCTYPE html>
 const ORIGINAL_SRC = {original_src_js};
 const MASK_SRC = {mask_src_js};
 const CLASS_NAMES = {class_names_js};
-const CLASS_COLORS = {class_colors_js};
+const CLASS_COLOURS = {class_colours_js};
 const PRESENT_IDS = {present_ids_js};
 
 const mainImg = document.getElementById('mainImg');
@@ -438,7 +438,7 @@ maskImg.onload = function() {{
 }};
 maskImg.src = MASK_SRC;
 
-// Overlay = 0.5*original + 0.5*class_color(mask), computed client-side, never stored.
+// Overlay = 0.5*original + 0.5*class_colour(mask), computed client-side, never stored.
 function grabOrigData() {{
   const off = document.createElement('canvas');
   off.width = mainImg.naturalWidth;
@@ -459,7 +459,7 @@ function tryRenderOverlay() {{
   for (let i = 0; i < maskW * maskH; i++) {{
     const cid = maskData[i * 4];
     let t = cache[cid];
-    if (!t) {{ t = colorTripleFor(cid); cache[cid] = t; }}
+    if (!t) {{ t = colourTripleFor(cid); cache[cid] = t; }}
     const o = i * 4;
     out[o]     = Math.round(0.5 * origData[o]     + 0.5 * t[0]);
     out[o + 1] = Math.round(0.5 * origData[o + 1] + 0.5 * t[1]);
@@ -481,7 +481,7 @@ function classIdAt(px, py) {{
 }}
 
 function nameFor(id) {{ return CLASS_NAMES[id] || ('class ' + id); }}
-function colorFor(id) {{ return CLASS_COLORS[id] || 'rgb(128,128,128)'; }}
+function colourFor(id) {{ return CLASS_COLOURS[id] || 'rgb(128,128,128)'; }}
 
 mainImg.addEventListener('mousemove', function(e) {{
   if (!maskData) return;
@@ -491,7 +491,7 @@ mainImg.addEventListener('mousemove', function(e) {{
   const ny = Math.floor(relY * maskH / rect.height);
   const id = classIdAt(nx, ny);
   if (id === null) return;
-  ttSw.style.background = colorFor(id);
+  ttSw.style.background = colourFor(id);
   ttText.textContent = nameFor(id);
   tooltip.style.display = 'block';
   tooltip.style.left = (e.clientX + 14) + 'px';
@@ -499,14 +499,14 @@ mainImg.addEventListener('mousemove', function(e) {{
 }});
 mainImg.addEventListener('mouseleave', function() {{ tooltip.style.display = 'none'; }});
 
-function colorTripleFor(id) {{
-  const m = /rgb\\((\\d+),\\s*(\\d+),\\s*(\\d+)\\)/.exec(colorFor(id));
+function colourTripleFor(id) {{
+  const m = /rgb\\((\\d+),\\s*(\\d+),\\s*(\\d+)\\)/.exec(colourFor(id));
   return m ? [+m[1], +m[2], +m[3]] : [255, 0, 0];
 }}
 function renderHighlightIds(ids) {{
   if (!smallMaskData || ids.size === 0) {{ clearHighlight(); return; }}
   const triples = {{}};
-  ids.forEach(function(id) {{ triples[id] = colorTripleFor(id); }});
+  ids.forEach(function(id) {{ triples[id] = colourTripleFor(id); }});
   const out = new Uint8ClampedArray(smallW * smallH * 4);
   for (let i = 0; i < smallW * smallH; i++) {{
     const t = triples[smallMaskData[i]];
@@ -528,7 +528,7 @@ for (const id of PRESENT_IDS) {{
   row.title = 'Click to pin this class highlighted (multiple can be pinned); click again to unpin.';
   const sw = document.createElement('span');
   sw.className = 'sw';
-  sw.style.background = colorFor(id);
+  sw.style.background = colourFor(id);
   const label = document.createElement('span');
   label.textContent = nameFor(id);
   row.appendChild(sw);
@@ -627,7 +627,7 @@ def _build_html_viewer(
     view_img: np.ndarray,
     mask_only: bool,
     pred: np.ndarray,
-    id_to_color: dict[int, tuple[int, int, int]],
+    id_to_colour: dict[int, tuple[int, int, int]],
     id_to_name: dict[int, str],
     prev_href: str | None = None,
     next_href: str | None = None,
@@ -658,9 +658,9 @@ def _build_html_viewer(
     class_names_js = json.dumps(
         {str(i): id_to_name.get(i, f"class {i}") for i in present_ids}
     )
-    class_colors_js = json.dumps(
+    class_colours_js = json.dumps(
         {str(i): f"rgb({r},{g},{b})" for i, (r, g, b) in
-         ((i, id_to_color.get(i, (128, 128, 128))) for i in present_ids)}
+         ((i, id_to_colour.get(i, (128, 128, 128))) for i in present_ids)}
     )
     present_ids_js = json.dumps(present_ids)
 
@@ -679,7 +679,7 @@ def _build_html_viewer(
         original_src_js=json.dumps(original_src),
         mask_src_js=json.dumps(mask_src),
         class_names_js=class_names_js,
-        class_colors_js=class_colors_js,
+        class_colours_js=class_colours_js,
         present_ids_js=present_ids_js,
         prev_href_attr=prev_href or "#",
         next_href_attr=next_href or "#",
@@ -718,17 +718,17 @@ _GALLERY_TEMPLATE = """<!DOCTYPE html>
   html[data-theme="light"] {{
     --bg:#f4f4f6; --fg:#171717; --panel:#ffffff; --border:#e0e0e3; --accent:#3a6df0; --muted:#444;
   }}
-  html, body {{ margin:0; padding:20px; background:var(--bg); color:var(--fg);
+  html, body {{ margin:0; padding:20px; background:var(--bg); colour:var(--fg);
     font-family: -apple-system, Segoe UI, Arial, sans-serif; }}
   #head {{ display:flex; align-items:center; gap:10px; margin:0 0 16px; }}
-  h1 {{ font-size:16px; color:var(--muted); margin:0; flex:1 1 auto; }}
-  button.iconbtn {{ background:var(--panel); color:var(--fg); border:1px solid var(--border);
+  h1 {{ font-size:16px; colour:var(--muted); margin:0; flex:1 1 auto; }}
+  button.iconbtn {{ background:var(--panel); colour:var(--fg); border:1px solid var(--border);
     border-radius:5px; padding:6px 12px; font-size:13px; cursor:pointer; }}
   .grid {{ display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap:14px; }}
-  a.card {{ color:var(--fg); text-decoration:none; background:var(--panel);
+  a.card {{ colour:var(--fg); text-decoration:none; background:var(--panel);
     border:1px solid var(--border); border-radius:8px; overflow:hidden; display:block; }}
-  a.card:hover {{ border-color:var(--accent); }}
+  a.card:hover {{ border-colour:var(--accent); }}
   a.card img {{ width:100%; display:block; aspect-ratio:4/3; object-fit:cover; }}
   a.card .cap {{ padding:8px 10px; font-size:12px; overflow:hidden; text-overflow:ellipsis;
     white-space:nowrap; }}
@@ -797,7 +797,7 @@ def _process_one(
     model: Any,
     device: torch.device,
     lut: np.ndarray,
-    id_to_color: dict[int, tuple[int, int, int]],
+    id_to_colour: dict[int, tuple[int, int, int]],
     id_to_name: dict[int, str],
     train_sizes: list[tuple[int, int]],
     mask_only: bool,
@@ -823,13 +823,13 @@ def _process_one(
     logits = F.interpolate(logits.float(), size=(H_v, W_v), mode="bilinear", align_corners=False)
     pred = logits.argmax(dim=1).squeeze(0).detach().cpu().numpy().astype(np.int64)
 
-    pred_color = _colorize(pred, lut)
+    pred_colour = _colourize(pred, lut)
 
     ext = output_path.suffix.lower()
 
     if ext == ".html":
-        view_img = pred_color if mask_only else (
-            (frame_rgb.astype(np.float32) * 0.5) + (pred_color.astype(np.float32) * 0.5)
+        view_img = pred_colour if mask_only else (
+            (frame_rgb.astype(np.float32) * 0.5) + (pred_colour.astype(np.float32) * 0.5)
         ).clip(0, 255).astype(np.uint8)
         output_path.parent.mkdir(parents=True, exist_ok=True)
         html, thumb_b64 = _build_html_viewer(
@@ -838,7 +838,7 @@ def _process_one(
             view_img=view_img,
             mask_only=mask_only,
             pred=pred,
-            id_to_color=id_to_color,
+            id_to_colour=id_to_colour,
             id_to_name=id_to_name,
             prev_href=prev_href,
             next_href=next_href,
@@ -849,16 +849,16 @@ def _process_one(
         return thumb_b64, image_path.name
 
     if mask_only:
-        out_img = pred_color
+        out_img = pred_colour
     else:
         blend = (
-            (frame_rgb.astype(np.float32) * 0.5) + (pred_color.astype(np.float32) * 0.5)
+            (frame_rgb.astype(np.float32) * 0.5) + (pred_colour.astype(np.float32) * 0.5)
         ).clip(0, 255).astype(np.uint8)
         out_img = np.concatenate([frame_rgb, blend], axis=1)
 
     if legend:
-        class_ids = id_to_color.keys() if legend_all_classes else np.unique(pred).tolist()
-        legend_img = _make_legend_image(class_ids, id_to_color, id_to_name)
+        class_ids = id_to_colour.keys() if legend_all_classes else np.unique(pred).tolist()
+        legend_img = _make_legend_image(class_ids, id_to_colour, id_to_name)
         out_img = _hstack_with_legend(out_img, legend_img)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -905,9 +905,9 @@ def main() -> None:
         help="Model config, set based on backbone size",
     )
     p.add_argument(
-        "--colors",
+        "--colours",
         type=Path,
-        default=Path("dataset_metadata/colors_39.json"),
+        default=Path("dataset_metadata/colours_39.json"),
         help="Class colour json, set based on 39/95 class model",
     )
     p.add_argument(
@@ -956,14 +956,14 @@ def main() -> None:
     device = _pick_device(args.device)
     print(f"device: {device}")
 
-    id_to_color = _load_id_to_color(
-        args.colors,
+    id_to_colour = _load_id_to_colour(
+        args.colours,
         classes_json=args.classes if args.classes.exists() else None,
     )
     id_to_name = (
         _load_id_to_name(args.classes) if args.classes.exists() else {}
     )
-    lut = _build_color_lut(id_to_color)
+    lut = _build_colour_lut(id_to_colour)
 
     train_sizes = _load_train_sizes(args.config)
 
@@ -978,7 +978,7 @@ def main() -> None:
         model=model,
         device=device,
         lut=lut,
-        id_to_color=id_to_color,
+        id_to_colour=id_to_colour,
         id_to_name=id_to_name,
         train_sizes=train_sizes,
         mask_only=args.mask_only,
