@@ -6,7 +6,7 @@ Run [Coralscapes](https://josauder.github.io/coralscapes/) / [CoralscapesV2](htt
 - Paper: https://arxiv.org/pdf/2609.12826
 - Models: https://huggingface.co/EPFL-ECEO
 
-This script is adapted from the video inference example code provided by the Coralscapes authors. I created it because it can be challenging to interpret Coralscapes outputs on your own data with 39 or 95 classes, and because the official repo has not yet been updated to run the new 95-class CoralscapesV2 models.
+This script is adapted from the video inference example code provided by the Coralscapes authors. I created it because it can be challenging to interpret Coralscapes outputs on your own data with 39 or 95 classes, and because [the official repo](https://github.com/josauder/dinov3_lora_dpt_coralscapes) has not yet been updated to run the new 95-class CoralscapesV2 models.
 
 ![Example output](example/example_screenshot.png)
 [Download this example](example/example_segmented.html) and open it in your browser to try the interactive viewer.
