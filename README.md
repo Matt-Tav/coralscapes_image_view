@@ -18,28 +18,35 @@ Install [Pixi](https://pixi.sh) if you do not have it
 curl -fsSL https://pixi.sh/install.sh | sh
 ```
 
-Setup this repository
+Clone this repository
 ```bash
 git clone https://github.com/Matt-Tav/coralscapes_image_view.git
 cd coralscapes_image_view
-pixi install
 ```
+ 
+Install dependencies - pick **one**:
+```bash
+pixi install          # NVIDIA GPU (CUDA)
+pixi install -e cpu   # CPU only, skips CUDA packages
+```
+ 
+If you installed `-e cpu`, add `-e cpu` when running e.g `pixi run -e cpu python predict_image.py ...`
+
 
 ## Example
 
 **CoralscapesV2 39-class vit-b model** (default):
 
 ```bash
-pixi run python predict_image.py \
-  --input path/to/my_image.jpg
+pixi run python predict_image.py --input path/to/my_image_or_folder
 ```
 
 **CoralscapesV2 95-class vit-l model** (specify config for alternative models):
 
 ```bash
 pixi run python predict_image.py \
+  --input path/to/my_image_or_folder \
   --repo-id EPFL-ECEO/coralscapesv2-dinov3-vitl-lora-dpt-95_class \
-  --input path/to/my_image_folder/ \
   --config configs/vit_l.yaml \
   --classes dataset_metadata/classes_95.json \
   --colours dataset_metadata/colours_95.json
