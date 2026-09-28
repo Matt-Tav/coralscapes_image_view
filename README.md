@@ -30,7 +30,7 @@ pixi install          # NVIDIA GPU (CUDA)
 pixi install -e cpu   # CPU only, skips CUDA packages
 ```
  
-If you installed `-e cpu`, add `-e cpu` when running e.g `pixi run -e cpu python predict_image.py ...`
+If you installed `-e cpu`, add `-e cpu` when running e.g `pixi run -e cpu predict ...`
 
 
 ## Example
@@ -38,13 +38,13 @@ If you installed `-e cpu`, add `-e cpu` when running e.g `pixi run -e cpu python
 **CoralscapesV2 39-class vit-b model** (default):
 
 ```bash
-pixi run python predict_image.py --input path/to/my_image_or_folder
+pixi run predict --input path/to/my_image_or_folder
 ```
 
 **CoralscapesV2 95-class vit-l model** (specify config for alternative models):
 
 ```bash
-pixi run python predict_image.py \
+pixi run predict \
   --input path/to/my_image_or_folder \
   --repo-id EPFL-ECEO/coralscapesv2-dinov3-vitl-lora-dpt-95_class \
   --config configs/vit_l.yaml \
